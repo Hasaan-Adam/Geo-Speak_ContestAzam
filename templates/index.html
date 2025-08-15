@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Translator & Converter</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+
+  <div class="flex h-screen">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-gray-800 text-white p-5 space-y-6">
+      <h2 class="text-2xl font-bold mb-4">Tools</h2>
+      <ul class="space-y-3">
+        <li><button onclick="showSection('textTranslation')" class="w-full text-left hover:bg-gray-700 p-2 rounded">📝 Text Translation</button></li>
+        <li><button onclick="showSection('pdfTranslation')" class="w-full text-left hover:bg-gray-700 p-2 rounded">🌍 PDF Translation</button></li>
+        <li><button onclick="showSection('pdfToDoc')" class="w-full text-left hover:bg-gray-700 p-2 rounded">📄 PDF → DOCX</button></li>
+        <li><button onclick="showSection('docToPdf')" class="w-full text-left hover:bg-gray-700 p-2 rounded">📑 DOCX → PDF</button></li>
+        <li><button onclick="showSection('imageToPdf')" class="w-full text-left hover:bg-gray-700 p-2 rounded">🖼️ Image → PDF</button></li>
+      </ul>
+    </aside>
+
+    <!-- Main -->
+    <main class="flex-1 p-6 overflow-auto">
+      <!-- Text Translation -->
+      <section id="textTranslation" class="section">
+        <h2 class="text-xl font-bold mb-4">📝 Text Translation</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Input Column -->
+          <div class="bg-white p-4 rounded shadow">
+            <form method="POST" class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium mb-2">Enter text</label>
+                <textarea id="message" name="message" rows="8" class="w-full p-3 border rounded" placeholder="Speak or type here...">{{ user_input }}</textarea>
+                <div class="flex items-center gap-3 mt-2">
+                  <!-- Voice input controls -->
+                  <button type="button" id="micBtn" class="px-3 py-2 rounded bg-rose-600 text-white hover:bg-rose-700">🎙️ Start Voice</button>
+                  <select id="speechLang" class="p-2 border rounded">
+                    <option value="en-US">English (US)</option>
+                    <option value="ur-PK">Urdu (Pakistan)</option>
+                    <option value="ar-SA">Arabic (Saudi)</option>
+                    <option value="fr-FR">French</option>
+                    <option value="es-ES">Spanish</option>
+                    <option value="hi-IN">Hindi (India)</option>
+                    <option value="zh-CN">Chinese (Simplified)</option>
+                    <option value="de-DE">German</option>
+                    <option value="ja-JP">Japanese</option>
+                  </select>
+                  <span id="micStatus" class="text-sm text-gray-500"></span>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium mb-2">Target language</label>
+                <select name="target_lang" class="p-2 border rounded">
+                  <option value="Urdu"   {% if target_language == "Urdu" %}selected{% endif %}>Urdu</option>
+                  <option value="English"{% if target_language == "English" %}selected{% endif %}>English</option>
+                  <option value="Spanish"{% if target_language == "Spanish" %}selected{% endif %}>Spanish</option>
+                  <option value="Arabic" {% if target_language == "Arabic" %}selected{% endif %}>Arabic</option>
+                  <option value="French" {% if target_language == "French" %}selected{% endif %}>French</option>
+                  <option value="Hindi"  {% if target_language == "Hindi" %}selected{% endif %}>Hindi</option>
+                  <option value="Chinese" {% if target_language == "Chinese" %}selected{% endif %}>Chinese</option>
+                  
+                </select>
+              </div>
+
+              <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Translate</button>
+            </form>
+
+            <!-- History
+            <div class="mt-6">
+              <h3 class="font-semibold mb-2">History (latest 20)</h3>
+              <div class="bg-gray-50 rounded p-3 max-h-56 overflow-y-auto text-sm">
+                {% if history %}
+                  <ul class="list-disc pl-5 space-y-1">
+                    {% for h in history %}
+                      <li><strong>{{ h.lang }}</strong>: {{ h.input[:60] }}{% if h.input|length > 60 %}…{% endif %}</li>
+                    {% endfor %}
+                  </ul>
+                {% else %}
+                  <p class="text-gray-500">No history yet.</p>
+                {% endif %}
+              </div>
+            </div> -->
+          </div>
+
+          <!-- Output Column -->
+          <div class="bg-white p-4 rounded shadow">
+            <h3 class="font-semibold mb-2">Translated Output</h3>
+            {% if translated_text %}
+              <div class="p-3 bg-green-50 rounded overflow-y-auto max-h-[400px] whitespace-pre-wrap">{{ translated_text }}</div>
+            {% else %}
+              <p class="text-gray-500">Your translation will appear here…</p>
+            {% endif %}
+          </div>
+        </div>
+      </section>
+
+      <!-- PDF Translation -->
+      <section id="pdfTranslation" class="section hidden">
+        <h2 class="text-xl font-bold mb-4">🌍 PDF Translation</h2>
+        <form method="POST" enctype="multipart/form-data" class="bg-white p-4 rounded shadow space-y-4">
+          <input type="file" name="pdf_file" accept=".pdf" class="w-full p-2 border rounded" required>
+          <select name="target_lang" class="p-2 border rounded">
+            <option value="Urdu">Urdu</option>
+            <option value="English">English</option>
+            <option value="Spanish">Spanish</option>
+            <option value="Arabic">Arabic</option>
+            <option value="French">French</option>
+          </select>
+          <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Translate PDF</button>
+        </form>
+      </section>
+
+      <!-- PDF → DOCX -->
+      <section id="pdfToDoc" class="section hidden">
+        <h2 class="text-xl font-bold mb-4">📄 Convert PDF to DOCX</h2>
+        <form action="/pdf-to-docx" method="POST" enctype="multipart/form-data" class="bg-white p-4 rounded shadow space-y-4">
+          <input type="file" name="pdf_file" accept=".pdf" class="w-full p-2 border rounded" required>
+          <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Convert</button>
+        </form>
+      </section>
+
+      <!-- DOCX → PDF -->
+      <section id="docToPdf" class="section hidden">
+        <h2 class="text-xl font-bold mb-4">📑 Convert DOCX to PDF</h2>
+        <form action="/docx-to-pdf" method="POST" enctype="multipart/form-data" class="bg-white p-4 rounded shadow space-y-4">
+          <input type="file" name="docx_file" accept=".docx" class="w-full p-2 border rounded" required>
+          <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Convert</button>
+        </form>
+      </section>
+
+      <!-- Image → PDF -->
+      <section id="imageToPdf" class="section hidden">
+        <h2 class="text-xl font-bold mb-4">🖼️ Convert Image to PDF</h2>
+        <form action="/image-to-pdf" method="POST" enctype="multipart/form-data" class="bg-white p-4 rounded shadow space-y-4">
+          <input type="file" name="image_file" accept="image/*" class="w-full p-2 border rounded" required>
+          <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Convert</button>
+        </form>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    // Section switcher
+    function showSection(sectionId) {
+      document.querySelectorAll('.section').forEach(sec => sec.classList.add('hidden'));
+      document.getElementById(sectionId).classList.remove('hidden');
+    }
+
+    // Voice input via Web Speech API
+    (function() {
+      const micBtn = document.getElementById('micBtn');
+      const speechLang = document.getElementById('speechLang');
+      const statusEl = document.getElementById('micStatus');
+      const textarea = document.getElementById('message');
+
+      if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        if (micBtn) {
+          micBtn.disabled = true;
+          micBtn.textContent = '🎙️ Not supported';
+          statusEl && (statusEl.textContent = 'Your browser does not support Speech Recognition.');
+        }
+        return;
+      }
+
+      const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const rec = new Recognition();
+      rec.continuous = false;
+      rec.interimResults = false;
+
+      micBtn.addEventListener('click', () => {
+        rec.lang = speechLang.value || 'en-US';
+        statusEl.textContent = 'Listening…';
+        micBtn.disabled = true;
+        rec.start();
+      });
+
+      rec.onresult = (evt) => {
+        const transcript = Array.from(evt.results).map(r => r[0].transcript).join(' ');
+        textarea.value = (textarea.value ? textarea.value + ' ' : '') + transcript;
+      };
+      rec.onerror = (e) => {
+        statusEl.textContent = 'Error: ' + (e.error || 'Unknown');
+      };
+      rec.onend = () => {
+        statusEl.textContent = 'Done.';
+        micBtn.disabled = false;
+      };
+    })();
+  </script>
+</body>
+</html>
